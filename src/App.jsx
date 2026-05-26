@@ -1,13 +1,24 @@
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from './assets/vite.svg'
+import heroImg from './assets/hero.png'
+import './App.css'
 import { useState, useEffect, useRef, useCallback } from "react";
+
+function App() {
+  const [count, setCount] = useState(0)
 const isLocal = window.location.hostname === "localhost";
+
 // Tumhara live backend URL
 const API = isLocal 
   ? "http://localhost:8000" 
   : "https://quant-backend-935k.onrender.com";
+
 // WebSocket – live ke liye wss://
 const WS  = isLocal 
   ? "ws://localhost:8000/ws" 
   : "wss://quant-backend-935k.onrender.com/ws";
+
 // ── GLOBAL STYLES ─────────────────────────────────────────────────────────────
 const GlobalStyle = () => (
   <style>{`
@@ -48,10 +59,12 @@ const GlobalStyle = () => (
     @keyframes flashDn  { 0%{background:rgba(255,77,109,0.18);} 100%{background:transparent;} }
   `}</style>
 );
+
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 const fmt   = (n, d=2) => (+n||0).toLocaleString('en-IN', { minimumFractionDigits:d, maximumFractionDigits:d });
 const fmtPct = n => `${n>=0?'+':''}${fmt(n)}%`;
 const clr   = v => v > 0 ? 'var(--buy)' : v < 0 ? 'var(--sell)' : 'var(--text3)';
+
 // ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen({ onAuth }) {
   const [mode, setMode]     = useState("login");
@@ -59,6 +72,7 @@ function AuthScreen({ onAuth }) {
   const [pass, setPass]     = useState("");
   const [err,  setErr]      = useState("");
   const [busy, setBusy]     = useState(false);
+
   const submit = async () => {
     if (!name.trim() || !pass.trim()) return setErr("Fill all fields");
     setBusy(true); setErr("");
@@ -79,7 +93,14 @@ function AuthScreen({ onAuth }) {
     } catch(e) { setErr(e.message); }
     setBusy(false);
   };
+
   return (
+    <>
+      <section id="center">
+        <div className="hero">
+          <img src={heroImg} className="base" width="170" height="179" alt="" />
+          <img src={reactLogo} className="framework" alt="React logo" />
+          <img src={viteLogo} className="vite" alt="Vite logo" />
     <div style={{
       display:'flex', alignItems:'center', justifyContent:'center',
       width:'100vw', height:'100vh',
@@ -94,6 +115,7 @@ function AuthScreen({ onAuth }) {
         </defs>
         <rect width="100%" height="100%" fill="url(#grid)" opacity="0.6"/>
       </svg>
+
       <div style={{
         width:390, padding:'40px 36px 32px', position:'relative', zIndex:1,
         background:'var(--bg2)', border:'1px solid var(--border)',
@@ -109,6 +131,7 @@ function AuthScreen({ onAuth }) {
           }}>⬡ QUANT TERMINAL</div>
           <div style={{color:'var(--text3)', fontSize:10, letterSpacing:4, marginTop:4, fontFamily:'var(--ui)'}}>v11 PRO · LIVE MARKET ENGINE</div>
         </div>
+
         {/* Mode tabs */}
         <div style={{display:'flex', borderBottom:'1px solid var(--border)', marginBottom:26}}>
           {["login","signup"].map(m => (
@@ -121,6 +144,7 @@ function AuthScreen({ onAuth }) {
             }}>{m}</button>
           ))}
         </div>
+
         <div style={{display:'flex', flexDirection:'column', gap:14}}>
           {[["USERNAME", name, setName, "text"], ["PASSWORD", pass, setPass, "password"]].map(([label, val, set, type]) => (
             <div key={label}>
@@ -137,11 +161,13 @@ function AuthScreen({ onAuth }) {
               />
             </div>
           ))}
+
           {err && (
             <div style={{padding:'8px 12px', background:'var(--sell-bg)', border:'1px solid rgba(255,77,109,0.3)', borderRadius:4, color:'var(--sell)', fontSize:12}}>
               ⚠ {err}
             </div>
           )}
+
           <button onClick={submit} disabled={busy} style={{
             marginTop:4, padding:'13px', width:'100%', borderRadius:4, cursor:'pointer',
             background:'linear-gradient(135deg, var(--accent2), #005070)',
@@ -151,6 +177,7 @@ function AuthScreen({ onAuth }) {
           }}>
             {busy ? '◌ CONNECTING...' : mode==='login' ? '→ ENTER MARKET' : '→ CREATE ACCOUNT'}
           </button>
+
           <div style={{textAlign:'center', color:'var(--text3)', fontSize:11, marginTop:4}}>
             <span style={{fontFamily:'var(--ui)'}}>Demo: </span>
             <span style={{color:'var(--accent)'}}>admin / admin123</span>
@@ -162,10 +189,12 @@ function AuthScreen({ onAuth }) {
     </div>
   );
 }
+
 // ── PRICE CHART ───────────────────────────────────────────────────────────────
 function PriceChart({ history }) {
   const wrapRef = useRef(null);
   const [dim, setDim] = useState({ w:600, h:220 });
+
   useEffect(() => {
     if (!wrapRef.current) return;
     const obs = new ResizeObserver(([e]) => {
@@ -174,23 +203,27 @@ function PriceChart({ history }) {
     obs.observe(wrapRef.current);
     return () => obs.disconnect();
   }, []);
+
   const data = history.slice(-80);
   const { w, h } = dim;
   const PAD = { top:18, right:62, bottom:36, left:6 };
   const VOL_H = 28;
   const chartW = w - PAD.left - PAD.right;
   const chartH = h - PAD.top - PAD.bottom - VOL_H - 4;
+
   if (data.length < 2) return (
     <div ref={wrapRef} style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text3)',fontSize:11}}>
       Awaiting market data...
     </div>
   );
+
   const prices = data.map(d => d.price);
   const minP = Math.min(...prices) * 0.9985;
   const maxP = Math.max(...prices) * 1.0015;
   const rng  = maxP - minP || 1;
   const px   = i => PAD.left + (i / (data.length - 1)) * chartW;
   const py   = p => PAD.top + chartH - ((p - minP) / rng) * chartH;
+
   const linePts  = data.map((d, i) => `${px(i)},${py(d.price)}`).join(' ');
   const areaPts  = `${px(0)},${PAD.top+chartH} ${linePts} ${px(data.length-1)},${PAD.top+chartH}`;
   const last     = prices[prices.length - 1];
@@ -198,6 +231,7 @@ function PriceChart({ history }) {
   const isUp     = last >= first;
   const mainClr  = isUp ? 'var(--buy)' : 'var(--sell)';
   const yTicks   = 5;
+
   return (
     <div ref={wrapRef} style={{width:'100%', height:'100%'}}>
       <svg width={w} height={h} style={{overflow:'visible'}}>
@@ -215,6 +249,7 @@ function PriceChart({ history }) {
             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
         </defs>
+
         {/* Y-axis grid */}
         {Array.from({length:yTicks}, (_, i) => minP + rng * i / (yTicks-1)).map((v, i) => (
           <g key={i}>
@@ -224,21 +259,26 @@ function PriceChart({ history }) {
               fill="#3a5570" fontSize="10" fontFamily="'JetBrains Mono',monospace">{fmt(v,0)}</text>
           </g>
         ))}
+
         {/* Area + Line */}
         <polygon points={areaPts} fill="url(#areaG)"/>
         <polyline points={linePts} fill="none" stroke="url(#lineG)" strokeWidth="2.2"/>
+
         {/* Current price guideline */}
         <line x1={PAD.left} y1={py(last)} x2={PAD.left+chartW} y2={py(last)}
           stroke={mainClr} strokeWidth="1" strokeDasharray="4,5" strokeOpacity="0.5"/>
+
         {/* Last price dot */}
         <circle cx={px(data.length-1)} cy={py(last)} r="5"
           fill={mainClr} stroke="var(--bg)" strokeWidth="2.5" filter="url(#glow)"/>
+
         {/* Price badge */}
         <rect x={PAD.left+chartW+2} y={py(last)-11} width={58} height={20}
           fill={isUp?'#00a843':'#b51b3c'} rx="3"/>
         <text x={PAD.left+chartW+31} y={py(last)+4}
           fill="#fff" fontSize="10" fontFamily="'JetBrains Mono',monospace"
           textAnchor="middle" fontWeight="700">{fmt(last,2)}</text>
+
         {/* Volume bars */}
         {data.map((d, i) => {
           if (!i) return null;
@@ -252,6 +292,7 @@ function PriceChart({ history }) {
               fill={d.price >= data[i-1].price ? '#00e676' : '#ff4d6d'} opacity="0.38"/>
           );
         })}
+
         {/* X-axis time labels */}
         {[0, Math.floor(data.length*0.25), Math.floor(data.length*0.5), Math.floor(data.length*0.75), data.length-1].map(i => {
           const d = data[i]; if (!d?.ts) return null;
@@ -266,11 +307,13 @@ function PriceChart({ history }) {
     </div>
   );
 }
+
 // ── ORDER BOOK ────────────────────────────────────────────────────────────────
 function OrderBook({ orderBook, lastPrice }) {
   const { bids=[], asks=[] } = orderBook;
   const maxQty = Math.max(...[...bids,...asks].map(o=>o.qty), 1);
   const spread = (asks[0]?.price && bids[0]?.price) ? asks[0].price - bids[0].price : 0;
+
   const Row = ({ side, price, qty }) => {
     const isBuy = side==='bid';
     const pct = (qty/maxQty)*100;
@@ -293,6 +336,7 @@ function OrderBook({ orderBook, lastPrice }) {
       </div>
     );
   };
+
   return (
     <div style={{display:'flex', flexDirection:'column', height:'100%', overflow:'hidden', fontSize:10}}>
       <div style={{display:'flex', justifyContent:'space-between', padding:'4px 10px', color:'var(--text3)', letterSpacing:2, fontFamily:'var(--ui)', borderBottom:'1px solid var(--border)'}}>
@@ -317,6 +361,7 @@ function OrderBook({ orderBook, lastPrice }) {
     </div>
   );
 }
+
 // ── TRADE PANEL ───────────────────────────────────────────────────────────────
 function TradePanel({ product, token, lastPrice, onDone }) {
   const [side, setSide]   = useState("BUY");
@@ -325,11 +370,14 @@ function TradePanel({ product, token, lastPrice, onDone }) {
   const [qty,   setQty]   = useState("1");
   const [msg,   setMsg]   = useState(null);
   const [busy,  setBusy]  = useState(false);
+
   // Sync market price into price field when in market mode
   useEffect(() => {
     if (mode === 'market' && lastPrice) setPrice(lastPrice.toFixed(2));
   }, [lastPrice, mode]);
+
   const total = (parseFloat(price)||0) * (parseInt(qty)||0);
+
   const placeOrder = async () => {
     if (!product) return;
     setBusy(true); setMsg(null);
@@ -353,6 +401,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
     } catch(e) { setMsg({ ok:false, text:`✗ ${e.message}` }); }
     setBusy(false);
   };
+
   const triggerBots = async () => {
     if (!product) return;
     const r = await fetch(`${API}/trigger-bots/${product.pid}`, {
@@ -363,7 +412,9 @@ function TradePanel({ product, token, lastPrice, onDone }) {
     onDone();
     setTimeout(() => setMsg(null), 3000);
   };
+
   const adjQty = delta => setQty(q => Math.max(1, parseInt(q||1)+delta).toString());
+
   return (
     <div style={{padding:'16px 14px', display:'flex', flexDirection:'column', gap:11}}>
       {/* BUY / SELL toggle */}
@@ -377,6 +428,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
           }}>{s==='BUY' ? '▲ BUY' : '▼ SELL'}</button>
         ))}
       </div>
+
       {/* Order mode */}
       <div style={{display:'flex', gap:5}}>
         {["market","limit"].map(m => (
@@ -390,6 +442,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
           }}>{m}</button>
         ))}
       </div>
+
       {/* Current market price card */}
       <div style={{
         padding:'10px 12px', borderRadius:5,
@@ -411,9 +464,111 @@ function TradePanel({ product, token, lastPrice, onDone }) {
           fontSize:11, fontFamily:'var(--ui)', fontWeight:700, letterSpacing:1
         }}>{mode==='market'?'INSTANT':mode.toUpperCase()}</div>
       </div>
+
       {/* Limit price input */}
       {mode === 'limit' && (
         <div>
+          <h1>Get started</h1>
+          <p>
+            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+          </p>
+        </div>
+        <button
+          type="button"
+          className="counter"
+          onClick={() => setCount((count) => count + 1)}
+        >
+          Count is {count}
+        </button>
+      </section>
+
+      <div className="ticks"></div>
+
+      <section id="next-steps">
+        <div id="docs">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#documentation-icon"></use>
+          </svg>
+          <h2>Documentation</h2>
+          <p>Your questions, answered</p>
+          <ul>
+            <li>
+              <a href="https://vite.dev/" target="_blank">
+                <img className="logo" src={viteLogo} alt="" />
+                Explore Vite
+              </a>
+            </li>
+            <li>
+              <a href="https://react.dev/" target="_blank">
+                <img className="button-icon" src={reactLogo} alt="" />
+                Learn more
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>Connect with us</h2>
+          <p>Join the Vite community</p>
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div className="ticks"></div>
+      <section id="spacer"></section>
+    </>
+  )
           <div style={{fontSize:9, color:'var(--text3)', letterSpacing:2.5, marginBottom:6, fontFamily:'var(--ui)', fontWeight:700}}>LIMIT PRICE</div>
           <div style={{display:'flex', gap:4}}>
             <input type="number" value={price} onChange={e=>setPrice(e.target.value)}
@@ -437,6 +592,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
           </div>
         </div>
       )}
+
       {/* Quantity */}
       <div>
         <div style={{fontSize:9, color:'var(--text3)', letterSpacing:2.5, marginBottom:6, fontFamily:'var(--ui)', fontWeight:700}}>QUANTITY</div>
@@ -469,6 +625,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
           ))}
         </div>
       </div>
+
       {/* Total */}
       <div style={{
         padding:'9px 12px', borderRadius:4,
@@ -478,6 +635,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
         <span style={{fontSize:10, color:'var(--text3)', fontFamily:'var(--ui)', letterSpacing:2}}>TOTAL COST</span>
         <span style={{fontSize:15, fontWeight:700, color:'var(--text)', fontFamily:'var(--mono)'}}>₹ {fmt(total,2)}</span>
       </div>
+
       {/* Submit button */}
       <button onClick={placeOrder} disabled={busy} style={{
         padding:'13px', borderRadius:5, cursor:'pointer', border:'none',
@@ -497,6 +655,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
             : `${side==='BUY'?'▲ PLACE BUY LIMIT':'▼ PLACE SELL LIMIT'} @ ₹${price||'--'}`
         }
       </button>
+
       {/* Message */}
       {msg && (
         <div style={{
@@ -506,6 +665,7 @@ function TradePanel({ product, token, lastPrice, onDone }) {
           color: msg.ok ? 'var(--buy)' : 'var(--sell)', fontFamily:'var(--ui)', fontWeight:600
         }}>{msg.text}</div>
       )}
+
       {/* Trigger bots */}
       <button onClick={triggerBots} style={{
         padding:'8px', borderRadius:4, cursor:'pointer', border:'1px solid var(--border2)',
@@ -519,18 +679,23 @@ function TradePanel({ product, token, lastPrice, onDone }) {
     </div>
   );
 }
+
 // ── MY ORDERS ─────────────────────────────────────────────────────────────────
 function MyOrdersPanel({ token, onRefresh }) {
   const [orders, setOrders] = useState([]);
+
   const load = useCallback(async () => {
     const r = await fetch(`${API}/my-orders`, { headers:{ 'Authorization':`Bearer ${token}` } });
     if (r.ok) setOrders(await r.json());
   }, [token]);
+
   useEffect(() => { load(); }, [load]);
+
   const cancel = async (oid) => {
     await fetch(`${API}/orders/${oid}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`} });
     await load(); onRefresh();
   };
+
   return (
     <div style={{padding:12, display:'flex', flexDirection:'column', gap:8, height:'100%', overflowY:'auto'}}>
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
@@ -542,6 +707,7 @@ function MyOrdersPanel({ token, onRefresh }) {
           borderRadius:3, color:'var(--text3)', fontSize:10, cursor:'pointer', fontFamily:'var(--ui)'
         }}>↻ REFRESH</button>
       </div>
+
       {orders.length === 0 ? (
         <div style={{color:'var(--text3)', fontSize:12, textAlign:'center', padding:'30px 0', fontFamily:'var(--ui)'}}>
           No open orders<br/>
@@ -602,6 +768,7 @@ function MyOrdersPanel({ token, onRefresh }) {
     </div>
   );
 }
+
 // ── PORTFOLIO ─────────────────────────────────────────────────────────────────
 function PortfolioPanel({ portfolio }) {
   if (!portfolio) return (
@@ -609,8 +776,10 @@ function PortfolioPanel({ portfolio }) {
       Loading...
     </div>
   );
+
   const { wallet, holdings=[], holdings_value, total_unrealized, total_realized, total_pnl, net_worth } = portfolio;
   const active = holdings.filter(h => h.quantity > 0 || h.sell_qty > 0);
+
   const Stat = ({ label, val, color, large }) => (
     <div>
       <div style={{fontSize:9, color:'var(--text3)', letterSpacing:2, fontFamily:'var(--ui)', fontWeight:700, marginBottom:3}}>{label}</div>
@@ -619,6 +788,7 @@ function PortfolioPanel({ portfolio }) {
       </div>
     </div>
   );
+
   return (
     <div style={{padding:'14px 12px', display:'flex', flexDirection:'column', gap:10, overflowY:'auto', height:'100%'}}>
       {/* Net Worth Hero */}
@@ -639,6 +809,7 @@ function PortfolioPanel({ portfolio }) {
           <Stat label="TOTAL P&L" val={total_pnl} color={clr(total_pnl)}/>
         </div>
       </div>
+
       {/* P&L Breakdown */}
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
         {[
@@ -657,6 +828,7 @@ function PortfolioPanel({ portfolio }) {
           </div>
         ))}
       </div>
+
       {/* Holdings */}
       <div style={{fontSize:10, color:'var(--text3)', letterSpacing:2, fontFamily:'var(--ui)', fontWeight:700, marginTop:4}}>
         OPEN POSITIONS ({active.length})
@@ -712,10 +884,13 @@ function PortfolioPanel({ portfolio }) {
     </div>
   );
 }
+
+export default App
 // ── TRADE HISTORY ─────────────────────────────────────────────────────────────
 function TradeHistoryPanel({ product, token }) {
   const [trades, setTrades] = useState([]);
   const [flash, setFlash]   = useState(null);
+
   const load = useCallback(async () => {
     if (!product) return;
     const r = await fetch(`${API}/trade-history/${product.pid}`, {
@@ -727,7 +902,9 @@ function TradeHistoryPanel({ product, token }) {
       if (data.length > 0) setFlash(data[0].id);
     }
   }, [product, token]);
+
   useEffect(() => { load(); }, [load]);
+
   return (
     <div style={{height:'100%', overflowY:'auto'}}>
       <div style={{
@@ -766,6 +943,7 @@ function TradeHistoryPanel({ product, token }) {
     </div>
   );
 }
+
 // ── MAIN TERMINAL ─────────────────────────────────────────────────────────────
 function MainTerminal({ token, username, onLogout }) {
   const [products,  setProducts]  = useState([]);
@@ -778,8 +956,10 @@ function MainTerminal({ token, username, onLogout }) {
   const [notification, setNotif]  = useState(null);
   const wsRef = useRef(null);
   const authH = { 'Authorization': `Bearer ${token}` };
+
   const selProduct = products.find(p => p.pid === selPid);
   const lastPrice  = history.length > 0 ? history[history.length-1].price : selProduct?.last_price;
+
   const loadProducts  = useCallback(() =>
     fetch(`${API}/products`).then(r=>r.json()).then(setProducts).catch(()=>{}), []);
   const loadBook      = useCallback(() => {
@@ -792,14 +972,17 @@ function MainTerminal({ token, username, onLogout }) {
   }, [selPid]);
   const loadPortfolio = useCallback(() =>
     fetch(`${API}/portfolio`, {headers:authH}).then(r=>r.json()).then(setPortfolio).catch(()=>{}), [token]);
+
   const refreshAll = useCallback(() => {
     loadProducts(); loadBook(); loadHistory(); loadPortfolio();
   }, [loadProducts, loadBook, loadHistory, loadPortfolio]);
+
   useEffect(() => { loadProducts(); loadPortfolio(); }, []);
   useEffect(() => { if (selPid) { loadBook(); loadHistory(); } }, [selPid]);
   useEffect(() => {
     if (products.length > 0 && !selPid) setSelPid(products[0].pid);
   }, [products]);
+
   // WebSocket connection
   useEffect(() => {
     let alive = true;
@@ -831,6 +1014,7 @@ function MainTerminal({ token, username, onLogout }) {
     connect();
     return () => { alive = false; wsRef.current?.close(); };
   }, [selPid]);
+
   const StatusDot = () => (
     <div style={{display:'flex', alignItems:'center', gap:5}}>
       <div style={{
@@ -844,6 +1028,7 @@ function MainTerminal({ token, username, onLogout }) {
       </span>
     </div>
   );
+
   return (
     <div style={{width:'100vw', height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden', background:'var(--bg)'}}>
       {/* ── TOPBAR ── */}
@@ -860,6 +1045,7 @@ function MainTerminal({ token, username, onLogout }) {
         <div style={{width:1, height:22, background:'var(--border)', flexShrink:0}}/>
         <StatusDot/>
         <div style={{width:1, height:22, background:'var(--border)', flexShrink:0}}/>
+
         {/* Market ticker row */}
         <div style={{flex:1, display:'flex', gap:12, overflow:'hidden', alignItems:'center'}}>
           {products.map(p => (
@@ -875,6 +1061,7 @@ function MainTerminal({ token, username, onLogout }) {
             </div>
           ))}
         </div>
+
         {/* Live trade notification */}
         {notification && (
           <div style={{
@@ -887,6 +1074,7 @@ function MainTerminal({ token, username, onLogout }) {
             TRADE ₹{fmt(notification.price)} ×{notification.quantity}
           </div>
         )}
+
         <div style={{width:1, height:22, background:'var(--border)', flexShrink:0}}/>
         <div style={{display:'flex', alignItems:'center', gap:10, flexShrink:0}}>
           <div style={{textAlign:'right'}}>
@@ -904,6 +1092,7 @@ function MainTerminal({ token, username, onLogout }) {
           </button>
         </div>
       </div>
+
       {/* ── MAIN BODY ── */}
       <div style={{flex:1, display:'flex', overflow:'hidden'}}>
         {/* LEFT SIDEBAR: Products */}
@@ -931,54 +1120,107 @@ function MainTerminal({ token, username, onLogout }) {
             </div>
           ))}
         </div>
-        
-        {/* CENTER COL: Chart & Trade Panel */}
-        <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
-          <div style={{flex:1.5, borderBottom:'1px solid var(--border)', position:'relative'}}>
-             <PriceChart history={history} />
+
+        {/* CENTER: Chart + Book */}
+        <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0}}>
+          {/* Chart header */}
+          <div style={{
+            padding:'8px 16px', borderBottom:'1px solid var(--border)',
+            display:'flex', alignItems:'center', gap:14, flexShrink:0, background:'var(--bg2)'
+          }}>
+            <div>
+              <span style={{fontFamily:'var(--ui)', fontWeight:900, fontSize:18, color:'var(--text)'}}>{selProduct?.name || '—'}</span>
+            </div>
+            <div style={{fontFamily:'var(--mono)', fontSize:24, fontWeight:700, color:'var(--accent)', letterSpacing:0.5}}>
+              ₹{lastPrice ? fmt(lastPrice) : '—'}
+            </div>
+            {history.length >= 2 && (() => {
+              const chg    = lastPrice - history[0].price;
+              const chgPct = (chg / history[0].price) * 100;
+              return (
+                <span style={{fontSize:13, fontWeight:700, color:clr(chg)}}>
+                  {chg >= 0 ? '▲' : '▼'} {fmtPct(chgPct)}
+                </span>
+              );
+            })()}
+            <div style={{flex:1}}/>
+            <button onClick={refreshAll} style={{
+              padding:'5px 11px', background:'var(--bg4)', border:'1px solid var(--border)',
+              borderRadius:4, color:'var(--text3)', fontSize:10, cursor:'pointer', fontFamily:'var(--ui)', fontWeight:700
+            }}>↻ REFRESH</button>
           </div>
-          <div style={{flex:1, display:'flex', overflow:'hidden'}}>
-             <div style={{flex:1, borderRight:'1px solid var(--border)'}}>
-                 <TradePanel product={selProduct} token={token} lastPrice={lastPrice} onDone={refreshAll} />
-             </div>
-             <div style={{flex:1}}>
-                 <OrderBook orderBook={book} lastPrice={lastPrice} />
-             </div>
+
+          {/* Chart + Order Book */}
+          <div style={{flex:1, display:'flex', overflow:'hidden', minHeight:0}}>
+            <div style={{flex:1, padding:'8px 10px 4px', overflow:'hidden', minWidth:0}}>
+              <PriceChart history={history}/>
+            </div>
+            <div style={{
+              width:188, borderLeft:'1px solid var(--border)', flexShrink:0,
+              background:'var(--bg2)', overflow:'hidden', display:'flex', flexDirection:'column'
+            }}>
+              <div style={{padding:'6px 10px', fontSize:9, color:'var(--text3)', letterSpacing:2.5, fontFamily:'var(--ui)', fontWeight:800, borderBottom:'1px solid var(--border)'}}>
+                ORDER BOOK
+              </div>
+              <div style={{flex:1, overflow:'hidden'}}>
+                <OrderBook orderBook={book} lastPrice={lastPrice}/>
+              </div>
+            </div>
           </div>
         </div>
-        {/* RIGHT SIDEBAR: Portfolio / History / Orders */}
-        <div style={{width:320, borderLeft:'1px solid var(--border)', display:'flex', flexDirection:'column', background:'var(--bg2)', flexShrink:0}}>
-           <div style={{display:'flex', borderBottom:'1px solid var(--border)'}}>
-              {["trade", "portfolio", "orders"].map(t => (
-                <button key={t} onClick={() => setRightTab(t)} style={{
-                  flex:1, padding:'10px 0', background:'none', cursor:'pointer', border:'none',
-                  borderBottom: rightTab===t ? '2px solid var(--accent)' : '2px solid transparent',
-                  color: rightTab===t ? 'var(--accent)' : 'var(--text3)',
-                  fontFamily:'var(--ui)', fontWeight:800, fontSize:10, letterSpacing:1, textTransform:'uppercase'
-                }}>{t}</button>
-              ))}
-           </div>
-           <div style={{flex:1, overflow:'hidden'}}>
-              {rightTab === "trade" && <TradeHistoryPanel product={selProduct} token={token} />}
-              {rightTab === "portfolio" && <PortfolioPanel portfolio={portfolio} />}
-              {rightTab === "orders" && <MyOrdersPanel token={token} onRefresh={refreshAll} />}
-           </div>
+
+        {/* RIGHT: Action Panel */}
+        <div style={{
+          width:326, borderLeft:'1px solid var(--border)', flexShrink:0,
+          display:'flex', flexDirection:'column', overflow:'hidden', background:'var(--bg2)'
+        }}>
+          {/* Tabs */}
+          <div style={{display:'flex', borderBottom:'1px solid var(--border)', flexShrink:0}}>
+            {[['trade','TRADE'],['orders','ORDERS'],['portfolio','PNL'],['history','HISTORY']].map(([id, label]) => (
+              <button key={id} onClick={() => setRightTab(id)} style={{
+                flex:1, padding:'11px 0', border:'none', background:'none',
+                borderBottom: rightTab===id ? '2px solid var(--accent)' : '2px solid transparent',
+                color: rightTab===id ? 'var(--accent)' : 'var(--text3)',
+                fontFamily:'var(--ui)', fontWeight:800, fontSize:10, letterSpacing:1.5,
+                cursor:'pointer', transition:'all 0.2s', marginBottom:-1
+              }}>{label}</button>
+            ))}
+          </div>
+          <div style={{flex:1, overflow:'hidden'}}>
+            {rightTab === 'trade'     && <TradePanel product={selProduct} token={token} lastPrice={lastPrice} onDone={refreshAll}/>}
+            {rightTab === 'orders'    && <MyOrdersPanel token={token} onRefresh={refreshAll}/>}
+            {rightTab === 'portfolio' && <PortfolioPanel portfolio={portfolio}/>}
+            {rightTab === 'history'   && <TradeHistoryPanel product={selProduct} token={token}/>}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-// ── APP CONTAINER ─────────────────────────────────────────────────────────────
+
+// ── ROOT ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [auth, setAuth] = useState(null);
+  const [token,    setToken]    = useState(() => localStorage.getItem('qt_token') || null);
+  const [username, setUsername] = useState(() => localStorage.getItem('qt_user')  || '');
+
+  const handleAuth = (tok, name) => {
+    setToken(tok); setUsername(name);
+    localStorage.setItem('qt_token', tok);
+    localStorage.setItem('qt_user',  name);
+  };
+  const handleLogout = () => {
+    setToken(null); setUsername('');
+    localStorage.removeItem('qt_token');
+    localStorage.removeItem('qt_user');
+  };
+
   return (
     <>
-      <GlobalStyle />
-      {!auth ? (
-        <AuthScreen onAuth={(token, user) => setAuth({ token, user })} />
-      ) : (
-        <MainTerminal token={auth.token} username={auth.user} onLogout={() => setAuth(null)} />
-      )}
+      <GlobalStyle/>
+      {token
+        ? <MainTerminal token={token} username={username} onLogout={handleLogout}/>
+        : <AuthScreen onAuth={handleAuth}/>
+      }
     </>
   );
 }
