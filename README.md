@@ -13,7 +13,8 @@ An advanced, full-stack trading platform simulating the core mechanics of modern
 
 <br/>
 
-![Quant Terminal Dashboard](Screenshot 2026-06-06 013432.jpg)
+![Quant Terminal Dashboard]<img width="1912" height="1006" alt="Screenshot 2026-06-06 013432" src="https://github.com/user-attachments/assets/9d436f84-2c0e-4002-ad34-8557388dc41d" />
+
 
 </div>
 
