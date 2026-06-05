@@ -34,25 +34,14 @@ An advanced, full-stack trading platform simulating the core mechanics of modern
 
 The backbone of Quant Terminal is a highly optimized, in-memory **Heap-Based Matching Engine**. 
 
-```mermaid
-graph TD
-    A[Client App / React] -->|REST: Place Order| B(FastAPI Backend)
-    A -->|WebSocket: Connect| C{WS Connection Manager}
-    B --> D[Order Validation & Margin Check]
-    D --> E{Matching Engine}
-    
-    E -->|BUY Orders| F[(Max Heap: Bids)]
-    E -->|SELL Orders| G[(Min Heap: Asks)]
-    
-    F --> H[Price-Time Execution Logic]
-    G --> H
-    
-    H -->|Trade Executed| I[(PostgreSQL Ledger)]
-    H -->|Broadcast Data| C
-    C -->|Live Ticks| A
-```
-
----
+**🔄 Order Execution Workflow:**
+1. **Client / UI** ➔ Sends a `Place Order` request via REST API.
+2. **FastAPI Backend** ➔ Validates user wallet balance and margin requirements.
+3. **Matching Engine** ➔ Routes the order to the correct memory heap:
+   * 🟢 **BUY Orders (Bids):** Stored in a **Max-Heap** *(Highest bidder gets priority)*.
+   * 🔴 **SELL Orders (Asks):** Stored in a **Min-Heap** *(Cheapest seller gets priority)*.
+4. **Price-Time Execution** ➔ Engine instantly matches orders when `Bid ≥ Ask`.
+5. **Settlement & Broadcast** ➔ Saves the trade to the PostgreSQL ledger and instantly streams live tick data via **WebSockets** back to the UI.
 
 ## ✨ Core Engineering Features
 
