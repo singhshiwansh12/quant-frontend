@@ -11,6 +11,10 @@
 
 An advanced, full-stack trading platform simulating the core mechanics of modern financial exchanges. Engineered for zero-latency execution, real-time market data synchronization, and rigorous portfolio management.
 
+<br/>
+
+![Quant Terminal Dashboard](Screenshot 2026-06-06 013432.jpg)
+
 </div>
 
 <br/>
@@ -42,6 +46,8 @@ The backbone of Quant Terminal is a highly optimized, in-memory **Heap-Based Mat
    * 🔴 **SELL Orders (Asks):** Stored in a **Min-Heap** *(Cheapest seller gets priority)*.
 4. **Price-Time Execution** ➔ Engine instantly matches orders when `Bid ≥ Ask`.
 5. **Settlement & Broadcast** ➔ Saves the trade to the PostgreSQL ledger and instantly streams live tick data via **WebSockets** back to the UI.
+
+---
 
 ## ✨ Core Engineering Features
 
